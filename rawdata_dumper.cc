@@ -31,8 +31,8 @@ int main(int argc, char* argv[]){
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
     char *magic_char = (char*) &magic;
     magic_char[8] = (char)0;
-    std::cout << "POS (bytes): " << std::dec << ifs.tellg()
-	      << " (0o" << std::oct << ifs.tellg() << std::dec << ") "
+    std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
+	      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ") "
 	      << "Magic: " << magic_char;
     switch (magic) {
     case TimeFrame::MAGIC: {
@@ -69,15 +69,26 @@ int main(int argc, char* argv[]){
 	uint64_t pos = (uint64_t)ifs.tellg();
 	ifs.read((char*)&idata, sizeof(idata));
 	if (idata.head == AmQStrTdc::Data::Heartbeat) {
-	  std::cout << "POS (bytes): " << std::dec << pos << " (0o" << std::oct << ifs.tellg() << pos << ") "
+	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
+		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << ") "
 		    << "  HBF num: 0x" << std::hex << idata.hbframe << std::dec
-		    << ", bit: 0x" << std::hex << idata.hbflag << std::dec
-		    << std::endl;
+		    << ", Delimiter flag: (0x" << std::hex << std::setw(4) << std::setfill('0') << idata.hbflag << std::setfill(' ') << std::dec << "";
+	  std::cout << ", active bits:";
+	  for (int i = 0; i < 16; i++){
+	    if ((idata.hbflag >> i) & 0x1) {
+	      std::cout << " bit" << i+1;
+	    }
+	  }
+	  if (idata.hbflag == 0){
+	    std::cout << " none";
+	  }
+	  std::cout << ")" << std::endl;
 	  hbcounter +=1;
 	}else if (idata.head == AmQStrTdc::Data::Data || idata.head == AmQStrTdc::Data::Trailer ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT1Start || idata.head == AmQStrTdc::Data::ThrottlingT1End ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT2Start || idata.head == AmQStrTdc::Data::ThrottlingT2End){
-	  std::cout << "POS (bytes): " << std::dec << pos << " (0o" << std::oct << pos << std::dec << ") ";
+	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
+		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ") ";
 	  std::cout << "  TDC ";
 	  if ( stfHeader.femType == 2 || stfHeader.femType == 5 ) { //HRTDC
 	    std::cout << "ch: " << idata.hrch;
@@ -98,7 +109,8 @@ int main(int argc, char* argv[]){
       ifs.seekg(sizeof(Filter::Header), std::ios_base::cur);
       break;}
     default: {
-      std::cout << "POS (bytes): " << std::dec << ifs.tellg() << " (0o" << std::oct << ifs.tellg() << std::dec << ") ";
+      std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
+		<< " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ") ";
       ifs.read((char*)&magic, sizeof(magic));
       uint32_t length;
       ifs.read((char*)&length, sizeof(length));

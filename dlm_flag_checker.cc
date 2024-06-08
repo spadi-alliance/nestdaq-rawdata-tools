@@ -85,19 +85,23 @@ int main(int argc, char* argv[]){
 	    hbflag_count.insert(std::make_pair(stfHeader.femId, std::vector<int>(17)));
 	  }
 	  hbflag_count[stfHeader.femId][0]++;
-	  for (int iflag = 1; iflag < 17; iflag++) {
-	    bool flag_bool = idata.hbflag >> (iflag-1) & 0x1;
-	    if (flag_bool) {
-	      uint64_t pos = (uint64_t)ifs.tellg() - sizeof(idata);
-	      std::cout << "Pos (bytes): " << pos
-			<< " (0o" << std::oct << pos << std::dec
-			<< "), HBF num: " << idata.hbframe
-			<< ", femId: (0x" << std::hex << stfHeader.femId << std::dec
-			<< ", " << femId_ip[stfHeader.femId]
-			<< "), bit: " << iflag
-			<< std::endl;
-	      hbflag_count[stfHeader.femId][iflag] += 1;
+	  if (idata.hbflag != 0) {
+	    uint64_t pos = (uint64_t)ifs.tellg() - sizeof(idata);
+	    std::cout << "Pos (bytes): " << std::setw(11) << pos
+		      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec
+		      << "), HBF num: " << std::setw(9) << idata.hbframe
+		      << ", femId: (0x" << std::hex << stfHeader.femId << std::dec
+		      << ", " << femId_ip[stfHeader.femId]
+		      << "), Delimiter flag: (0x" << std::hex << std::setw(4) << std::setfill('0') << idata.hbflag << std::setfill(' ') << std::dec
+		      << ", active bits:";
+	    for (int iflag = 1; iflag < 17; iflag++) {
+	      bool flag_bool = idata.hbflag >> (iflag-1) & 0x1;
+	      if (flag_bool) {
+		hbflag_count[stfHeader.femId][iflag] += 1;
+		std::cout << " bit" << iflag;
+	      }
 	    }
+	    std::cout << ")"<<std::endl;
 	  }
 	  hbcounter +=1;
 	  //}else if (idata.head == Data::Data || idata.head == Data::Trailer ||
@@ -133,7 +137,7 @@ int main(int argc, char* argv[]){
   for (int ibit =1; ibit < hbflag_count.begin()->second.size(); ibit++) {
     std::cout << "|" << std::setw(7) << "bit" + std::to_string(ibit);
   }
-  std::cout << "|" << std::setw(7) << "total" << std::endl;
+  std::cout << "|" << std::setw(7) << "TotalHB" << std::endl;
   for (auto ite = hbflag_count.begin(); ite != hbflag_count.end(); ite++) {
     std::cout << std::setw(13) << femId_ip[ite->first];
     for (int ibit =1; ibit < ite->second.size(); ibit++) {
@@ -142,11 +146,18 @@ int main(int argc, char* argv[]){
     std::cout << "|" << std::setw(7) << (ite->second)[0];
     std::cout << std::endl;
   }
+  std::cout << std::endl;
+  std::cout << "Total count for each front end board" << std::endl;
+  std::cout << "Assuming:" << std::endl;
+  std::cout << "1 HBF = 2^16 / 125 MHz = 524.288 usec" << std::endl;
+  std::cout << "1 hit = 1 word = 64 bits = 8 Bytes" << std::endl;
   for (auto ite = femScaler.begin(); ite != femScaler.end(); ite++) {
     double time_in_sec = hbflag_count[ite->first][0] * 0.000524288;
     std::cout << std::setw(13) << femId_ip[ite->first] << ": ";
     std::cout << std::setw(12) << ite->second <<  " / " <<  std::setw(12) << time_in_sec << " sec = ";
-    std::cout << std::setw(12) << (ite->second / time_in_sec) << " cps" << std::endl;
+    std::cout << std::setw(12) << (ite->second / time_in_sec) << " cps ~ ";
+    std::cout << std::setw(12) << (ite->second / time_in_sec) * 8/1024/1024 << " MB/sec = ";
+    std::cout << std::setw(12) << (ite->second / time_in_sec) * 8*8/1024/1024 << " Mbps" << std::endl;
   }
   //for (auto ite = femScaler2.begin(); ite != femScaler2.end(); ite++) {
   //  double time_in_sec = hbflag_count[ite->first][0] * 0.000524;
