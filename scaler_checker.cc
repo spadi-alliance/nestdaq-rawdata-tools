@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
       uint32_t length;
       ifs.read((char*)&length, sizeof(length));
       ifs.seekg(length - sizeof(length) - sizeof(magic), std::ios_base::cur);
-      std::cout << "  length: " << length << std::endl;
+      //std::cout << "  length: " << length << std::endl;
       break;}
     }
   }
