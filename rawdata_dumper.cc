@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
     char *magic_char = (char*) &magic;
     magic_char[8] = (char)0;
     std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
-	      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ")|"
+	      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ")| "
 	      << "Magic: " << magic_char;
     switch (magic) {
     case TimeFrame::MAGIC: {
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]){
 	ifs.read((char*)&idata, sizeof(idata));
 	if (idata.head == AmQStrTdc::Data::Heartbeat) {
 	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << ")|"
-		    << "  HBF "
+		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << ")| "
+		    << "   HBF "
 		    << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec
 		    << ", (ip) " << femId_ip[stfHeader.femId]
 		    << ", HBF num: 0x" << std::hex << idata.hbframe << std::dec
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]){
 		  idata.head == AmQStrTdc::Data::ThrottlingT1Start || idata.head == AmQStrTdc::Data::ThrottlingT1End ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT2Start || idata.head == AmQStrTdc::Data::ThrottlingT2End){
 	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")|";
-	  std::cout << "  TDC ";
+		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")| ";
+	  std::cout << "   TDC ";
 	  std::cout << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec;
 	  std::cout << ", (ip) " << femId_ip[stfHeader.femId];
 
@@ -116,8 +116,6 @@ int main(int argc, char* argv[]){
       std::cout << std::endl;
       break;}
     default: {
-      std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
-		<< " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ")|";
       ifs.read((char*)&magic, sizeof(magic));
       uint32_t length;
       ifs.read((char*)&length, sizeof(length));
