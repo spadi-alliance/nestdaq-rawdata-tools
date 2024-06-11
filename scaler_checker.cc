@@ -1,6 +1,7 @@
 #include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
+#include <csignal>
 #include <fstream>
 #include <iomanip>
 #include <vector>
@@ -13,7 +14,15 @@
 #include "TimeFrameHeader.h"
 #include "FilterHeader.h"
 
+bool flag_int = true;
+void sighandler( int signum ) {
+  std::cout << "Interrupt signal (" << signum << ") received." << std::endl;
+  flag_int = false;
+  return;
+}
+
 int main(int argc, char* argv[]){
+  signal(SIGINT, sighandler);
   if (argc <= 1) {
     std::cout << "Usage: ./scaler_checker filename " << std::endl;
     return 1;
@@ -33,7 +42,7 @@ int main(int argc, char* argv[]){
   std::map<uint64_t, std::vector<uint64_t> > counter;
   std::map<uint64_t, uint64_t> hbcounter;
   std::map<uint64_t, std::string> femId_ip;
-  while( !ifs.eof() && (ifs.tellg() != -1) ){ 
+  while( !ifs.eof() && (ifs.tellg() != -1) && flag_int){ 
     uint64_t magic;
     ifs.read((char*)&magic, sizeof(magic));
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
