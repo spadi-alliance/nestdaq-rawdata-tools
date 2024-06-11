@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
 	    std::cout << ", tdc: " << idata.hrtdc;
 	    std::cout << ", tot: " << idata.hrtot << std::endl;
 	  }else if ( stfHeader.femType == 3 || stfHeader.femType == 6 ) { //LRTDC
-	    std::cout << "ch: "<< idata.ch;		
+	    std::cout << ", ch: "<< idata.ch;		
 	    std::cout << ", tdc: "<< idata.tdc;
 	    std::cout << ", tot: "<< idata.tot << std::endl;
 	  }
