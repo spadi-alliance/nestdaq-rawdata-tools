@@ -91,7 +91,7 @@ int main(int argc, char* argv[]){
 		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ") ";
 	  std::cout << "  TDC ";
 	  std::cout << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec;
-	  std::cout << ", FemId (ip): " << << std::setw(15) << femId_ip[stfHeader.femId];
+	  std::cout << ", FemId (ip): " << std::setw(15) << femId_ip[stfHeader.femId];
 
 	  if ( stfHeader.femType == 2 || stfHeader.femType == 5 ) { //HRTDC
 	    std::cout << ", ch: " << idata.hrch;
