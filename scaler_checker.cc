@@ -35,6 +35,7 @@ int main(int argc, char* argv[]){
   ifs.seekg(beg, std::ios_base::beg);
   FileSinkHeader::Header fileHeader;
   ifs.read((char*)&fileHeader,sizeof(fileHeader));
+  std::cout << "Ctrl-c to END and show the scaler. " << std::endl;
   std::cout << "Data file: "<< filename
 	    << ", size: " << fsize / 1024 / 1024
 	    << " MB" << std::endl;
