@@ -26,13 +26,19 @@ constexpr uint64_t MAGIC = {0x004c5254454c4946}; /* "FILETRL " */
 struct Trailer { /* Total size: 304 bytes */
     uint64_t magic               {MAGIC}; /* 64 bits = 8 bytes */
     union {
-        uint64_t size               ;     /* 64 bits = 8 bytes */
+        uint64_t size                {0}; /* 64 bits = 8 bytes */
         struct {
-            uint32_t length      {0x130}; /* 32 bits = 8 bytes */
-            uint16_t hLength     {0x130}; /* 32 bits = 8 bytes */
-            uint16_t type        {0};     /* 32 bits = 8 bytes */
+            // Commented out for compilation in macOS clang
+            // uint32_t length      {0x130};
+            // uint16_t hLength     {0x130};
+            // uint16_t type        {0};
+            uint32_t length;              /* 32 bits = 8 bytes */
+            uint16_t hLength;             /* 32 bits = 8 bytes */
+            uint16_t type;                /* 32 bits = 8 bytes */
         };
     };
+    // For compilation in macOS clang
+    Trailer() : length(0x130), hLength(0x130), type(0) {}
     uint64_t fairMQDeviceType    {0};     /* 64 bits = 8 bytes */
     uint64_t runNumber           {0};     /* 64 bits = 8 bytes */
     time_t   startUnixtime       {0};     /* 64 bits = 8 bytes */

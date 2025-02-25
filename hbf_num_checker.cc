@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
   for (unsigned int ifile = 0; ifile < ifs.size(); ifile++){
     FileSinkHeader::Header fileHeader;
     ifs[ifile].read((char*)&fileHeader,sizeof(fileHeader));
-    int ret = read_data(ifs[ifile], filesizes[ifile], 0, 0, lastTimeFrameId, currHeartBeatNumber);
+    read_data(ifs[ifile], filesizes[ifile], 0, 0, lastTimeFrameId, currHeartBeatNumber);
     headOfTimeFrameId.insert(std::make_pair(lastTimeFrameId, ifile));
   }
   while (true) {

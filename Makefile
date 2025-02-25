@@ -30,5 +30,8 @@ $(TARGET4): $(OBJECT4)
 $(TARGET5): $(OBJECT5)
 	g++ -std=c++17 -Werror -Wall -O2 $^ -o $@ 
 
+%.o: %.cc
+	g++ -std=c++17 -Werror -Wall -O2 -c $^ -o $@ 
+
 clean:
 	rm -f $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) *.o *~ 

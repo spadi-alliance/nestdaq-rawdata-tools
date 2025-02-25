@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
 
       unsigned int nword = (stfHeader.length - sizeof(stfHeader)) / 8;
       //std::cout << "nword: " << nword << std::endl;
-      uint64_t hbcounter = 0;
+      //uint64_t hbcounter = 0;
       for(unsigned int i=0; i< nword; i++){
 	AmQStrTdc::Data::Bits idata;
 	uint64_t pos = (uint64_t)ifs.tellg();
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]){
 	    std::cout << " none";
 	  }
 	  std::cout << ")" << std::endl;
-	  hbcounter +=1;
+	  //hbcounter +=1;
 	}else if (idata.head == AmQStrTdc::Data::Data || idata.head == AmQStrTdc::Data::Trailer ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT1Start || idata.head == AmQStrTdc::Data::ThrottlingT1End ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT2Start || idata.head == AmQStrTdc::Data::ThrottlingT2End){

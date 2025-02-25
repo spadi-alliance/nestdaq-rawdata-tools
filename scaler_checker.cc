@@ -84,7 +84,7 @@ int main(int argc, char* argv[]){
       //std::cout << "nword: " << nword << std::endl;
       for(unsigned int i=0; i< nword; i++){
 	AmQStrTdc::Data::Bits idata;
-	uint64_t pos = (uint64_t)ifs.tellg();
+	//uint64_t pos = (uint64_t)ifs.tellg();
 	ifs.read((char*)&idata, sizeof(idata));
 	if (idata.head == AmQStrTdc::Data::Heartbeat) {
 	  hbcounter[stfHeader.femId]++;
