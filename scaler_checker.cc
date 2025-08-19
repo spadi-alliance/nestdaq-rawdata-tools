@@ -120,7 +120,7 @@ int main(int argc, char* argv[]){
     std::cout << "FemId: " << femId_ip[ite->first] << std::endl;
     double time_in_sec = hbcounter[ite->first] * 0.000524288;
     uint64_t sum = 0;
-    for ( int i = 0; i < counter[ite->first].size(); i++) {
+    for (unsigned int i = 0; i < counter[ite->first].size(); i++) {
       std::cout << std::setw(13) << i << ": ";
       std::cout << std::setw(12) << counter[ite->first][i] <<  " / " <<  std::setw(12) << time_in_sec << " sec = ";
       std::cout << std::setw(12) << (counter[ite->first][i] / time_in_sec) << " cps" << std::endl;

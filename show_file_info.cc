@@ -9,7 +9,7 @@
 #include "FileSinkTrailer.h"
 
 int print_file_infos (std::vector<std::ifstream> &ifs, std::vector<std::string>& filenames, std::vector<uint64_t> &filesizes) {
-  for (int ifile = 0; ifile < ifs.size(); ifile++) {
+  for (unsigned int ifile = 0; ifile < ifs.size(); ifile++) {
     std::ifstream::pos_type beg = ifs[ifile].tellg();
     FileSinkTrailer::Trailer fileTrailer;
     ifs[ifile].seekg(filesizes[ifile]-sizeof(fileTrailer), std::ios_base::beg);
@@ -37,7 +37,7 @@ int get_file_sizes ( std::vector<std::ifstream>& ifs, std::vector<uint64_t> &fil
   if (ifs.size() != filesizes.size()){
     filesizes.resize(ifs.size());
   }
-  for (int ifile = 0; ifile < ifs.size(); ifile++) {
+  for (unsigned int ifile = 0; ifile < ifs.size(); ifile++) {
     std::ifstream::pos_type beg = ifs[ifile].tellg();
     ifs[ifile].seekg(0, std::ios::end);
     std::ifstream::pos_type fsize = ifs[ifile].tellg();
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
   std::vector<std::string>   filenames;
   std::vector<std::ifstream> ifs;
   std::vector<uint64_t>      filesizes;
-  for (unsigned int i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     filenames.push_back(argv[i]);
   }
   for (unsigned int i = 0; i < filenames.size(); i++) {

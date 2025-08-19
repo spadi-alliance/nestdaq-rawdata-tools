@@ -108,7 +108,7 @@ int main(int argc, char* argv[]){
   std::vector<std::string>   filenames;
   std::vector<std::ifstream> ifs;
   std::vector<uint64_t>      filesizes;
-  for (unsigned int i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     filenames.push_back(argv[i]);
   }
   for (unsigned int i = 0; i < filenames.size(); i++) {

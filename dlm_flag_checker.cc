@@ -134,13 +134,13 @@ int main(int argc, char* argv[]){
   //std::cout << "hbflag_count.begin()->second.size(): "<< hbflag_count.begin()->second.size() << std::endl;
 
   std::cout << std::setw(13) << "ip address";
-  for (int ibit =1; ibit < hbflag_count.begin()->second.size(); ibit++) {
+  for (unsigned int ibit =1; ibit < hbflag_count.begin()->second.size(); ibit++) {
     std::cout << "|" << std::setw(7) << "bit" + std::to_string(ibit);
   }
   std::cout << "|" << std::setw(7) << "TotalHB" << std::endl;
   for (auto ite = hbflag_count.begin(); ite != hbflag_count.end(); ite++) {
     std::cout << std::setw(13) << femId_ip[ite->first];
-    for (int ibit =1; ibit < ite->second.size(); ibit++) {
+    for (unsigned int ibit =1; ibit < ite->second.size(); ibit++) {
       std::cout << "|" << std::setw(7) << (ite->second)[ibit];
     }
     std::cout << "|" << std::setw(7) << (ite->second)[0];
