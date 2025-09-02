@@ -3,12 +3,14 @@ TARGET2 = hbf_num_checker
 TARGET3 = rawdata_dumper
 TARGET4 = show_file_info
 TARGET5 = scaler_checker
+TARGET6 = hbf_sorted_rawdata_dumper
 
 OBJECT1 = $(TARGET1).o
 OBJECT2 = $(TARGET2).o
 OBJECT3 = $(TARGET3).o
 OBJECT4 = $(TARGET4).o
 OBJECT5 = $(TARGET5).o
+OBJECT6 = $(TARGET6).o
 
 .SUFFIXES: .cc .o
 
@@ -18,6 +20,7 @@ all:
 	make $(TARGET3)
 	make $(TARGET4)
 	make $(TARGET5)
+	make $(TARGET6)
 
 $(TARGET1): $(OBJECT1)
 	g++ -std=c++17 -Werror -Wall -O2 $^ -o $@ 
@@ -29,9 +32,11 @@ $(TARGET4): $(OBJECT4)
 	g++ -std=c++17 -Werror -Wall -O2 $^ -o $@ 
 $(TARGET5): $(OBJECT5)
 	g++ -std=c++17 -Werror -Wall -O2 $^ -o $@ 
+$(TARGET6): $(OBJECT6)
+	g++ -std=c++17 -Werror -Wall -O2 $^ -o $@ 
 
 %.o: %.cc
 	g++ -std=c++17 -Werror -Wall -O2 -c $^ -o $@ 
 
 clean:
-	rm -f $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) *.o *~ 
+	rm -f $(TARGET1) $(TARGET2) $(TARGET3) $(TARGET4) $(TARGET5) $(TARGET6) *.o *~ 
