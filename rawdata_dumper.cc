@@ -1,6 +1,7 @@
 #include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <vector>
@@ -12,6 +13,12 @@
 #include "SubTimeFrameHeader.h"
 #include "TimeFrameHeader.h"
 #include "FilterHeader.h"
+
+int print_file_position(uint64_t pos) {
+  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
+	    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")| ";
+  return 0;
+}
 
 int main(int argc, char* argv[]){
   if (argc <= 1) {
@@ -29,16 +36,21 @@ int main(int argc, char* argv[]){
     uint64_t magic;
     ifs.read((char*)&magic, sizeof(magic));
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
-    char *magic_char = (char*) &magic;
+    char magic_char[9];
     magic_char[8] = (char)0;
-    std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
-	      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ")| "
-	      << "Magic: " << magic_char;
+    strncpy(magic_char,(char*)&magic,8);
+    print_file_position(ifs.tellg());
+    std::cout << "Magic: " << magic_char;
     switch (magic) {
     case TimeFrame::MAGIC: {
       TimeFrame::Header tfbHeader;
       ifs.read((char*)&tfbHeader, sizeof(tfbHeader));
-      std::cout << ", TimeFrameId: " << std::dec << tfbHeader.timeFrameId << std::hex << " 0x" << tfbHeader.timeFrameId << std::endl;
+      std::cout << ", TimeFrameId: " << std::dec << tfbHeader.timeFrameId
+		<< std::hex << " 0x" << tfbHeader.timeFrameId
+		<< std::dec << ", length: " << tfbHeader.length
+		<< std::dec << ", type: " << tfbHeader.type
+		<< std::dec << ", numSource: " << tfbHeader.numSource
+		<< std::dec << std::endl;
       break;}
     case SubTimeFrame::MAGIC: {
       SubTimeFrame::Header stfHeader;
@@ -69,9 +81,8 @@ int main(int argc, char* argv[]){
 	uint64_t pos = (uint64_t)ifs.tellg();
 	ifs.read((char*)&idata, sizeof(idata));
 	if (idata.head == AmQStrTdc::Data::Heartbeat) {
-	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << ")| "
-		    << "   HBF "
+	  print_file_position(pos);
+	  std::cout << "   HBF "
 		    << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec
 		    << ", (ip) " << femId_ip[stfHeader.femId]
 		    << ", HBF num: 0x" << std::hex << idata.hbframe << std::dec
@@ -90,8 +101,7 @@ int main(int argc, char* argv[]){
 	}else if (idata.head == AmQStrTdc::Data::Data || idata.head == AmQStrTdc::Data::Trailer ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT1Start || idata.head == AmQStrTdc::Data::ThrottlingT1End ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT2Start || idata.head == AmQStrTdc::Data::ThrottlingT2End){
-	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")| ";
+	  print_file_position(pos);
 	  std::cout << "   TDC ";
 	  std::cout << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec;
 	  std::cout << ", (ip) " << femId_ip[stfHeader.femId];

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <vector>
@@ -13,26 +14,31 @@
 #include "TimeFrameHeader.h"
 #include "FilterHeader.h"
 
-int initial_hbf_sorting (std::ifstream &ifs, uint64_t max_num_read_hbf,
-			 std::map<uint32_t, uint64_t>& hbf_sorted_address, uint64_t &read_pos){
+int hbf_sorting (std::ifstream &ifs, uint64_t max_num_read_hbf,
+		 std::map<uint32_t, uint64_t>& hbf_sorted_address, uint64_t &read_pos){
+  ifs.seekg(read_pos, std::ios_base::beg);
   uint32_t currTimeFrameId = 0;
   uint32_t file_read_flag = 1;
-  while( !ifs.eof() && (ifs.tellg() != -1) && (file_read_flag == 1) ){ 
+  while(file_read_flag == 1){ 
     uint64_t magic;
     ifs.read((char*)&magic, sizeof(magic));
+    if (ifs.eof() || (ifs.tellg() == -1)) {
+      read_pos = ifs.tellg();
+      break;
+    }
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
     switch (magic) {
     case TimeFrame::MAGIC: {
       TimeFrame::Header tfbHeader;
       ifs.read((char*)&tfbHeader, sizeof(tfbHeader));
-      if (currTimeFrameId != tfbHeader.timeFrameId) {
+      if (tfbHeader.timeFrameId != currTimeFrameId) {
 	if (hbf_sorted_address.size() == max_num_read_hbf) {
 	  read_pos = (uint64_t) ifs.tellg() - sizeof(TimeFrame::Header);
 	  file_read_flag = 0;
 	  break;
 	}
 	currTimeFrameId = tfbHeader.timeFrameId;
-	hbf_sorted_address[currTimeFrameId] = ifs.tellg();
+	hbf_sorted_address[currTimeFrameId] = (uint64_t) ifs.tellg() - sizeof(TimeFrame::Header);
 	//std::cout << "TimeFrameId: " << std::dec << tfbHeader.timeFrameId << std::hex << " 0x" << tfbHeader.timeFrameId << std::endl;
       }
       break;}
@@ -62,58 +68,9 @@ int initial_hbf_sorting (std::ifstream &ifs, uint64_t max_num_read_hbf,
   return 0;
 }
 
-int add_hbf_address (std::ifstream &ifs, uint64_t max_num_read_hbf,
-		     std::map<uint32_t, uint64_t>& hbf_sorted_address, uint64_t &read_pos){
-  if (!hbf_sorted_address.empty()) {
-    hbf_sorted_address.erase(hbf_sorted_address.begin());
-  }
-  ifs.seekg(read_pos, std::ios_base::beg);
-
-  uint32_t currTimeFrameId = 0;
-  uint32_t file_read_flag = 1;
-  while( !ifs.eof() && (ifs.tellg() != -1) && (file_read_flag == 1) ){ 
-    uint64_t magic;
-    ifs.read((char*)&magic, sizeof(magic));
-    ifs.seekg(-sizeof(magic), std::ios_base::cur);
-    switch (magic) {
-    case TimeFrame::MAGIC: {
-      TimeFrame::Header tfbHeader;
-      ifs.read((char*)&tfbHeader, sizeof(tfbHeader));
-      if (currTimeFrameId == 0) {
-	currTimeFrameId = tfbHeader.timeFrameId;
-      }
-      if (currTimeFrameId != tfbHeader.timeFrameId) {
-	if (hbf_sorted_address.size() == max_num_read_hbf) {
-	  read_pos = (uint64_t) ifs.tellg() - sizeof(TimeFrame::Header);
-	  file_read_flag = 0;
-	  break;
-	}
-	currTimeFrameId = tfbHeader.timeFrameId;
-	hbf_sorted_address[currTimeFrameId] = ifs.tellg();
-	//std::cout << "Add TimeFrameId: " << std::dec << tfbHeader.timeFrameId << std::hex << " 0x" << tfbHeader.timeFrameId << std::endl;
-	//std::cout << "hbf_sorted_address.size(): " << hbf_sorted_address.size() << std::endl;
-      }
-      break;}
-    case SubTimeFrame::MAGIC: {
-      SubTimeFrame::Header stfHeader;
-      ifs.read((char*)&stfHeader, sizeof(stfHeader));
-      unsigned int nword = (stfHeader.length - sizeof(stfHeader)) / 8;
-      ifs.seekg(nword * sizeof(AmQStrTdc::Data::Bits), std::ios_base::cur);
-      break;}
-    case FileSinkTrailer::MAGIC: {
-      ifs.seekg(sizeof(FileSinkTrailer::Trailer), std::ios_base::cur);
-      break;}
-    case Filter::MAGIC: {
-      ifs.seekg(sizeof(Filter::Header), std::ios_base::cur);
-      break;}
-    default: {
-      ifs.read((char*)&magic, sizeof(magic));
-      uint32_t length;
-      ifs.read((char*)&length, sizeof(length));
-      ifs.seekg(length - sizeof(length) - sizeof(magic), std::ios_base::cur);
-      break;}
-    }
-  }
+int print_file_position(uint64_t pos) {
+  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
+	    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")| ";
   return 0;
 }
 
@@ -128,36 +85,46 @@ int main(int argc, char* argv[]){
   FileSinkHeader::Header fileHeader;
   ifs.read((char*)&fileHeader,sizeof(fileHeader));
   std::map<uint32_t, uint64_t> hbf_sorted_address;
-  uint64_t read_pos;
-  initial_hbf_sorting(ifs, 2000, hbf_sorted_address, read_pos);
+  uint64_t read_pos = ifs.tellg();
+  uint64_t max_num_read_hbf = 2000;
+  hbf_sorting(ifs, max_num_read_hbf, hbf_sorted_address, read_pos);
   
   std::map<uint64_t, std::string > femId_ip;
   uint32_t timeFrameFlag = 1;
   uint32_t currTimeFrameId = 0;
-  while( !ifs.eof() && (ifs.tellg() != -1) ){
+  uint64_t savedCurrPos = 0;
+  while( true ){
+    savedCurrPos = ifs.tellg();
     if (timeFrameFlag == 1){
-      add_hbf_address(ifs, 2000, hbf_sorted_address, read_pos);
-      ifs.seekg(hbf_sorted_address.begin()->second, std::ios_base::beg);
-      currTimeFrameId = hbf_sorted_address.begin()->first;
+      if (!hbf_sorted_address.empty()) {
+	savedCurrPos = hbf_sorted_address.begin()->second;
+	currTimeFrameId = hbf_sorted_address.begin()->first;
+	hbf_sorted_address.erase(hbf_sorted_address.begin());
+	hbf_sorting(ifs, max_num_read_hbf, hbf_sorted_address, read_pos);
+      }
       timeFrameFlag = 0;
     }
+    ifs.seekg(savedCurrPos, std::ios_base::beg);
     uint64_t magic;
     ifs.read((char*)&magic, sizeof(magic));
+    if (ifs.eof() || (ifs.tellg() == -1)) {
+      break;
+    }
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
-    char *magic_char = (char*) &magic;
+    char magic_char[9];
     magic_char[8] = (char)0;
-    std::cout << "Pos (bytes): " << std::dec << std::setw(11) << ifs.tellg()
-	      << " (0o" << std::oct << std::setw(12) << std::setfill('0') << ifs.tellg() << std::setfill(' ') << std::dec << ")| "
-	      << "Magic: " << magic_char;
+    strncpy(magic_char,(char*)&magic,8);
+    
+    print_file_position(ifs.tellg());
+    std::cout << "Magic: " << magic_char;
     switch (magic) {
     case TimeFrame::MAGIC: {
       TimeFrame::Header tfbHeader;
       ifs.read((char*)&tfbHeader, sizeof(tfbHeader));
-      if (currTimeFrameId == 0) {
-	currTimeFrameId = tfbHeader.timeFrameId;
-      }
       if (currTimeFrameId != tfbHeader.timeFrameId) {
 	timeFrameFlag = 1;
+	std::cout << ", TimeFrameId: " << std::dec << tfbHeader.timeFrameId << std::hex << " 0x" << tfbHeader.timeFrameId
+		  << ", Jump to the nest TimeFrameId" << std::endl;
 	break;
       }
       std::cout << ", TimeFrameId: " << std::dec << tfbHeader.timeFrameId << std::hex << " 0x" << tfbHeader.timeFrameId << std::endl;
@@ -184,16 +151,15 @@ int main(int argc, char* argv[]){
       std::cout << ", nwords: " << (stfHeader.length - sizeof(stfHeader)) / 8 << std::endl;      
 
       unsigned int nword = (stfHeader.length - sizeof(stfHeader)) / 8;
-      //std::cout << "nword: " << nword << std::endl;
+      std::cout << "nword: " << nword << std::endl;
       //uint64_t hbcounter = 0;
       for(unsigned int i=0; i< nword; i++){
 	AmQStrTdc::Data::Bits idata;
 	uint64_t pos = (uint64_t)ifs.tellg();
 	ifs.read((char*)&idata, sizeof(idata));
 	if (idata.head == AmQStrTdc::Data::Heartbeat) {
-	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << ")| "
-		    << "   HBF "
+	  print_file_position(pos);
+	  std::cout << "   HBF "
 		    << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec
 		    << ", (ip) " << femId_ip[stfHeader.femId]
 		    << ", HBF num: 0x" << std::hex << idata.hbframe << std::dec
@@ -212,8 +178,7 @@ int main(int argc, char* argv[]){
 	}else if (idata.head == AmQStrTdc::Data::Data || idata.head == AmQStrTdc::Data::Trailer ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT1Start || idata.head == AmQStrTdc::Data::ThrottlingT1End ||
 		  idata.head == AmQStrTdc::Data::ThrottlingT2Start || idata.head == AmQStrTdc::Data::ThrottlingT2End){
-	  std::cout << "Pos (bytes): " << std::dec << std::setw(11) << pos
-		    << " (0o" << std::oct << std::setw(12) << std::setfill('0') << pos << std::setfill(' ') << std::dec << ")| ";
+	  print_file_position(pos);
 	  std::cout << "   TDC ";
 	  std::cout << "FemId: 0x" << std::hex << std::setw(8) << std::setfill('0') << stfHeader.femId << std::setfill(' ') << std::dec;
 	  std::cout << ", (ip) " << femId_ip[stfHeader.femId];
