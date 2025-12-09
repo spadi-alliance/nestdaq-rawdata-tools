@@ -1,6 +1,7 @@
 #include <iostream>
 #include <inttypes.h>
 #include <stdint.h>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <vector>
@@ -33,8 +34,9 @@ int main(int argc, char* argv[]){
     uint64_t magic;
     ifs.read((char*)&magic, sizeof(magic));
     ifs.seekg(-sizeof(magic), std::ios_base::cur);
-    char * magic_char = (char*) &magic;
+    char magic_char[9];
     magic_char[8] = (char)0;
+    strncpy(magic_char,(char*)&magic,8);
     //std::cout << "Magic: " << magic_char << std::endl;
     
     switch (magic) {
